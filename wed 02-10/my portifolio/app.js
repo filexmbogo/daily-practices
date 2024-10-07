@@ -1,4 +1,6 @@
 const express =require('express')
+const nodemailer = require('nodemailer')
+
 const  path =require('path')
 const port= process.env.port||3000
 const app= express()
@@ -7,13 +9,21 @@ const cookieparser= require ('cookie-parser')
 const project=require('./src/models/projects')
 const images=require('./src/models/image')
 
-
+ // Setup Nodemailer transporter
+ let transporter = nodemailer.createTransport({
+   service: 'gmail',  // You can use other services like Outlook, Yahoo, etc.
+   auth: {
+       user: 'filexmbogo691@gmail.com', // Your email address
+       pass: 'tqpofjjqkeofrjok',  // Your email password or app-specific password
+   }
+});
 const router= require('./Routes/index')
 const route= require('./Routes/admin')
 const authorize= require('./middleware/authorize')
 const { name } = require('ejs')
 const mongoose =require('mongoose')
 const { error } = require('console')
+
 const connect= async ()=>{
 mongoose.connect('mongodb://127.0.0.1:27017/database')
   
@@ -45,12 +55,16 @@ const image= await images.findOne({name:'hello'})
 }
 
 
+
+
 app.use(router)
 app.use(route)
 app.use(cookieparser())
 app.use(express.static(path.join(__dirname,'./public')))
 app.set('views',path.join(__dirname,"./src/views"))
 app.set('view engine','ejs')
+app.use(express.urlencoded({ extended: true }));
+app.use (express.json())
 
 app.get('/portfolio-details',(req,res)=>{
    const get = async () => {
@@ -66,10 +80,11 @@ app.get('/portfolio-details',(req,res)=>{
    get().then(result => {
 
    res.render('portfolio-details',{result})
-      console.log(result.image);  // Log the actual result
+      console.log(result.image);  
    }).catch(error => {
-      console.error(error);  // Handle any errors
+      console.error(error);  
    });
+
   
 
    
@@ -78,7 +93,52 @@ app.get('/portfolio-details',(req,res)=>{
 
    
 
-})
+}) 
+
+app.post('/forms/contact', (req, res) => {
+   console.log("reaching "); 
+
+   const {name,email,subject,message}=req.body
+    let mailOptions = {
+        from: '   filexmbogo691@gmail.com',  
+        to: 'filexmbogo691@gmail.com',  
+        subject: 'portifolio request',  
+        text: `${name} reached out on you portifolio with ${email} considering ${subject} and left the message ${message}`,
+    };
+    
+    let options={
+      from:'filexmbogo691@gmail.com'
+      ,to:`${email}`,
+      subject:'message received successfully ',
+text:'we have received you message successfully we will reach out soon'
+    }
+    transporter.sendMail(options,(error,info)=>{if (error) {
+      console.log(error);
+      res.status(500).send('Error sending email');
+  } else {
+      console.log('Email sent: ' + info.response);
+      res.send('Email sent successfully');
+  }})
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+            res.status(500).send('Error sending email');
+        } else {
+            console.log('Email sent: ' + info.response);
+            res.send('Email sent successfully');
+        }
+    });
+    console.log(message);
+    
+
+ 
+  
+  
+   res.redirect("/")
+
+
+
+});
 app.get('/admin/query',(req,res)=>{res.cookie('admin','filex',{maxAge:1000*60})
 if (req.cookies.admin&& req.cookies.admin=='filex'){
    res.render('admin',{title:'Admin'})}

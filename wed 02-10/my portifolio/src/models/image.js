@@ -5,7 +5,10 @@ mongoose.connect('mongodb://127.0.0.1:27017/database', )
     console.log('MongoDB connected successfully!');
 const imgschema= new  mongoose.Schema({
     
-        name:String,
+        name:{
+            unique:true,type:String
+
+        },
         data:Buffer,
         contentType:String,
         slider:Boolean

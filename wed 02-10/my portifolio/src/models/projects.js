@@ -4,7 +4,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/database')
     console.log('MongoDB connected successfully!');
 const fs=require('fs')
 const image=require('./image')
-const path =require('path')
+const path =require('path');
+const { error } = require('console');
 
 const eachimage= new image()
 eachimage.name=('hello')
@@ -12,7 +13,9 @@ console.log(path.resolve('../../../public/img/IMG_20240328_183539.jpg'))
 eachimage.data=fs.readFileSync(path.resolve('./public/img/IMG_20240328_183539.jpg'))
 eachimage.contentType='image/png'
 eachimage.slider=true
-eachimage.save()
+try{eachimage.save()}
+catch{console.log(error);
+}
 
 const portifolioshema= new mongoose.Schema({
     slider1:String,
